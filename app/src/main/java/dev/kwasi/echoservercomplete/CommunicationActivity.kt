@@ -47,6 +47,8 @@ class CommunicationActivity : AppCompatActivity(), WifiDirectInterface, PeerList
     private var deviceIp: String = ""
 
     override fun onCreate(savedInstanceState: Bundle?) {
+        wfdManager?.disconnect()
+
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
         setContentView(R.layout.activity_communication)

@@ -45,26 +45,29 @@
 
     <androidx.constraintlayout.widget.ConstraintLayout
         android:id="@+id/clNoWifiDirectConnection"
-        android:padding="32dp"
-        android:visibility="gone"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        app:layout_constraintTop_toTopOf="parent"
+        android:padding="32dp"
+        android:visibility="gone"
         app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toEndOf="parent">
+        app:layout_constraintTop_toTopOf="parent"
+        tools:visibility="visible">
 
+        <!--change id-->
         <TextView
             android:id="@+id/tvWfdDisconnected"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="WiFi Direct - Disconnected"
+            android:text="Attendance and Feedback System"
             android:textSize="18sp"
             android:textStyle="bold"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toTopOf="parent" />
 
+        <!--change id and make automate discover-->
         <Button
             android:id="@+id/btnCreateGroup"
             android:layout_width="wrap_content"
@@ -73,12 +76,24 @@
             android:layout_marginEnd="50dp"
             android:onClick="createGroup"
             android:text="Create Group"
-            app:layout_constraintHorizontal_chainStyle="packed"
-            app:layout_constraintVertical_chainStyle="packed"
             app:layout_constraintEnd_toStartOf="@+id/btnDiscover"
+            app:layout_constraintHorizontal_chainStyle="packed"
             app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="@+id/tvWfdDisconnected" />
+            app:layout_constraintTop_toBottomOf="@+id/tvWfdDisconnected"
+            app:layout_constraintVertical_chainStyle="packed" />
 
+        <TextView
+            android:id="@+id/teacherLabel"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:padding="10dp"
+            android:text="Teacher"
+            android:textSize="18dp"
+            app:layout_constraintBaseline_toTopOf="@+id/btnCreateGroup"
+            app:layout_constraintEnd_toEndOf="@id/btnCreateGroup"
+            app:layout_constraintStart_toStartOf="@+id/btnCreateGroup" />
+
+        <!--remove and automate-->
         <Button
             android:id="@+id/btnDiscover"
             android:layout_width="wrap_content"
@@ -103,21 +118,22 @@
 
     <androidx.constraintlayout.widget.ConstraintLayout
         android:id="@+id/clHasConnection"
-        android:padding="24dp"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        app:layout_constraintTop_toTopOf="parent"
+        android:padding="24dp"
+        android:visibility="visible"
         app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toEndOf="parent">
-        
+        app:layout_constraintTop_toTopOf="parent"
+        tools:visibility="visible">
+
         <androidx.recyclerview.widget.RecyclerView
             android:id="@+id/rvChat"
             android:layout_width="match_parent"
             android:layout_height="0dp"
-            app:layout_constraintTop_toTopOf="parent"
             app:layout_constraintBottom_toTopOf="@id/llChatSend"
-            />
+            app:layout_constraintTop_toTopOf="parent" />
 
         <LinearLayout
             android:id="@+id/llChatSend"
@@ -125,28 +141,27 @@
             android:layout_height="wrap_content"
             android:orientation="horizontal"
             app:layout_constraintBottom_toBottomOf="parent"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintEnd_toEndOf="parent">
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent">
 
             <EditText
                 android:id="@+id/etMessage"
                 android:layout_width="0dp"
-                android:layout_weight="1"
-                android:inputType="textMultiLine"
-                android:minLines="3"
-                android:maxLines="5"
-                android:hint="Enter message..."
                 android:layout_height="wrap_content"
-                 />
+                android:layout_weight="1"
+                android:hint="Enter message..."
+                android:inputType="textMultiLine"
+                android:maxLines="5"
+                android:minLines="3" />
 
             <Button
                 android:layout_width="0dp"
+                android:layout_height="wrap_content"
                 android:layout_weight="0.4"
-                android:text="Send"
                 android:onClick="sendMessage"
-                android:layout_height="wrap_content"/>
+                android:text="Send" />
         </LinearLayout>
-        
+
     </androidx.constraintlayout.widget.ConstraintLayout>
 
 </androidx.constraintlayout.widget.ConstraintLayout>

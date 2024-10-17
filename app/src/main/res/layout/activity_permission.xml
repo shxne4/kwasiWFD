@@ -27,7 +27,7 @@
         android:layout_height="wrap_content"
         android:layout_marginTop="12dp"
         android:gravity="center"
-        android:text="Unfortunately you have not granted the necessary permissions to use this app. Please grant these settings manually using the button below!"
+        android:text="To use the attendance and feedback app, we require that all permissions are granted"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/textView" />
