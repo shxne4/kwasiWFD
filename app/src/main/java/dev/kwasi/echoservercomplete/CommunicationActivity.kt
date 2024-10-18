@@ -27,7 +27,7 @@ import dev.kwasi.echoservercomplete.peerlist.PeerListAdapterInterface
 import dev.kwasi.echoservercomplete.wifidirect.WifiDirectInterface
 import dev.kwasi.echoservercomplete.wifidirect.WifiDirectManager
 import java.security.MessageDigest
-import java.util.Random
+import kotlin.random.Random
 import javax.crypto.Cipher
 import javax.crypto.spec.SecretKeySpec
 
@@ -212,12 +212,11 @@ class CommunicationActivity : AppCompatActivity(), WifiDirectInterface, PeerList
             if (studentIDs.contains(studentID)) {
                 // Student ID is valid, send acknowledgment and wait for "I am here"
                 verifiedStudents[senderIp] = studentID
-                val ackMessage = ContentModel("StudentID verified. Please send 'I am here'", deviceIp)
+                val ackMessage = ContentModel("Student ID verified. Please send 'I am here'", deviceIp)
                 server?.sendMessage(ackMessage, senderIp)  // Acknowledge valid Student ID
             } else {
                 // Invalid Student ID, ignore further messages
-                val toast = Toast.makeText(this, "Invalid Student ID from $senderIp", Toast.LENGTH_SHORT)
-                toast.show()
+                Toast.makeText(this, "Invalid Student ID from $senderIp", Toast.LENGTH_SHORT).show()
             }
 
         } else if (message == "I am here") {
@@ -237,8 +236,7 @@ class CommunicationActivity : AppCompatActivity(), WifiDirectInterface, PeerList
 
             } else {
                 // "I am here" received without a valid Student ID
-                val toast = Toast.makeText(this, "StudentID required before 'I am here' from $senderIp", Toast.LENGTH_SHORT)
-                toast.show()
+                Toast.makeText(this, "Student ID required before 'I am here' from $senderIp", Toast.LENGTH_SHORT).show()
             }
 
         } else {
@@ -252,21 +250,20 @@ class CommunicationActivity : AppCompatActivity(), WifiDirectInterface, PeerList
                 val decryptedRandom = decryptMessage(message, studentIDHash)
 
                 // Step 5: Verify if the decrypted random number matches the original R
-                if (decryptedRandom == expectedRandom) {
+                if (decryptedRandom.toInt() == expectedRandom) {
                     // Authentication successful, allow further communication
                     studentChallenges.remove(senderIp)  // Remove challenge after successful auth
-                    authenticatedStudents.add(senderIp)  // Mark the student as authenticated
 
+                    // Mark the student as authenticated (you can manage this list)
                     val toast = Toast.makeText(this, "Student $studentID authenticated", Toast.LENGTH_SHORT)
                     toast.show()
                 } else {
                     // Failed verification, ignore further messages from this student
-                    val toast = Toast.makeText(this, "Authentication failed for $studentID", Toast.LENGTH_SHORT)
-                    toast.show()
+                    Toast.makeText(this, "Authentication failed for $studentID", Toast.LENGTH_SHORT).show()
                 }
-
-            } else if (authenticatedStudents.contains(senderIp)) {
-                // If the student is already authenticated, show the message in the chat
+            } else {
+                // Handle subsequent messages from authenticated students
+                // Show message in chat or handle accordingly
                 runOnUiThread {
                     chatListAdapter?.addItemToEnd(content)
                 }
@@ -274,37 +271,9 @@ class CommunicationActivity : AppCompatActivity(), WifiDirectInterface, PeerList
         }
     }
 
-    //runOnUiThread {
-      //  chatListAdapter?.addItemToEnd(content)
-    //}
-
     // Helper function to generate a random number R
     private fun generateRandomNumber(): Int {
-        return Random().nextInt(1000000) // Random number between 0 and 999999
-    }
-
-    // Function to handle the encrypted response from the student
-    private fun handleEncryptedResponse(content: ContentModel) {
-        val encryptedResponse = content.message
-        val studentId = content.sender
-
-        // Step 4: Verify if the student has an outstanding challenge
-        val randomR = studentChallenges[studentId] ?: return
-
-        // Step 5: Compute hash of StudentID
-        val hashedId = hashStudentID(studentId)
-
-        // Step 6: Decrypt the student's response using hashedId
-        val decryptedR = decryptMessage(encryptedResponse, hashedId)
-
-        // Step 7: Verify if decrypted R matches the original R
-        if (decryptedR == randomR.toString()) {
-            // Authentication successful, proceed with encrypted communication
-            Toast.makeText(this, "Student $studentId authenticated!", Toast.LENGTH_SHORT).show()
-        } else {
-            // Authentication failed, ignore the student
-            Toast.makeText(this, "Authentication failed for $studentId", Toast.LENGTH_SHORT).show()
-        }
+        return Random.nextInt(1000000) // Random number between 0 and 999999
     }
 
     // Function to hash the Student ID
@@ -323,6 +292,5 @@ class CommunicationActivity : AppCompatActivity(), WifiDirectInterface, PeerList
         val decryptedBytes = cipher.doFinal(encryptedMessage.toByteArray())
         return String(decryptedBytes)
     }
-
-
 }
+

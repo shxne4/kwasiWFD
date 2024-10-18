@@ -67,6 +67,21 @@ class Server(private val iFaceImpl: NetworkMessageInterface) {
         }
     }
 
+    fun sendMessage(content: ContentModel, recipientIp: String) {
+        val socket = clientMap[recipientIp]
+        socket?.let {
+            try {
+                val clientWriter = it.outputStream.bufferedWriter()
+                val contentJson = Gson().toJson(content)
+                clientWriter.write("$contentJson\n")
+                clientWriter.flush()
+            } catch (e: Exception) {
+                Log.e("SERVER", "Failed to send message to $recipientIp")
+                e.printStackTrace()
+            }
+        } ?: Log.e("SERVER", "No connection found for $recipientIp")
+    }
+
     fun close() {
         svrSocket.close()
         clientMap.clear()
