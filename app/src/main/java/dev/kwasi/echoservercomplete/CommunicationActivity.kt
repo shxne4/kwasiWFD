@@ -8,6 +8,7 @@ import android.net.wifi.p2p.WifiP2pManager
 import android.os.Bundle
 import android.view.View
 import android.widget.EditText
+import android.widget.TextView
 import android.widget.Toast
 import androidx.activity.enableEdgeToEdge
 import androidx.appcompat.app.AppCompatActivity
@@ -25,8 +26,20 @@ import dev.kwasi.echoservercomplete.peerlist.PeerListAdapter
 import dev.kwasi.echoservercomplete.peerlist.PeerListAdapterInterface
 import dev.kwasi.echoservercomplete.wifidirect.WifiDirectInterface
 import dev.kwasi.echoservercomplete.wifidirect.WifiDirectManager
+import java.security.MessageDigest
+import java.util.Random
+import javax.crypto.Cipher
+import javax.crypto.spec.SecretKeySpec
 
 class CommunicationActivity : AppCompatActivity(), WifiDirectInterface, PeerListAdapterInterface, NetworkMessageInterface {
+    // Hardcoded list of student IDs
+    private val studentIDs = listOf("816035115", "816035116", "816035117", "816035118", "816035119")
+
+
+    private val verifiedStudents = mutableMapOf<String, String>()  // IP -> Student ID
+    private val studentChallenges = mutableMapOf<String, Pair<String, Int>>()  // IP -> (StudentID, R)
+    private val authenticatedStudents = mutableSetOf<String>()  // Authenticated student IPs
+
     private var wfdManager: WifiDirectManager? = null
 
     private val intentFilter = IntentFilter().apply {
@@ -149,6 +162,8 @@ class CommunicationActivity : AppCompatActivity(), WifiDirectInterface, PeerList
     }
 
     override fun onGroupStatusChanged(groupInfo: WifiP2pGroup?) {
+        val ssidTextView: TextView = findViewById(R.id.networkID)
+        val passwordTextView: TextView = findViewById(R.id.password)
 
         val text = if (groupInfo == null){
             "Group is not formed"
@@ -157,6 +172,10 @@ class CommunicationActivity : AppCompatActivity(), WifiDirectInterface, PeerList
         }
         val toast = Toast.makeText(this, text , Toast.LENGTH_SHORT)
         toast.show()
+
+        ssidTextView.text = groupInfo?.networkName ?: "Not Connected"
+        passwordTextView.text = groupInfo?.passphrase ?: "Not Available"
+
         wfdHasConnection = groupInfo != null
 
         if (groupInfo == null){
@@ -182,9 +201,128 @@ class CommunicationActivity : AppCompatActivity(), WifiDirectInterface, PeerList
 
 
     override fun onContent(content: ContentModel) {
-        runOnUiThread{
-            chatListAdapter?.addItemToEnd(content)
+        val message = content.message
+        val senderIp = content.senderIp
+
+        // Step 1: Handle Student ID submission
+        if (message.matches(Regex("\\d{9}"))) { // Assuming Student IDs are 9-digit numbers
+            val studentID = message.trim()
+
+            // Step 2: Verify if the Student ID is in the hardcoded list
+            if (studentIDs.contains(studentID)) {
+                // Student ID is valid, send acknowledgment and wait for "I am here"
+                verifiedStudents[senderIp] = studentID
+                val ackMessage = ContentModel("StudentID verified. Please send 'I am here'", deviceIp)
+                server?.sendMessage(ackMessage, senderIp)  // Acknowledge valid Student ID
+            } else {
+                // Invalid Student ID, ignore further messages
+                val toast = Toast.makeText(this, "Invalid Student ID from $senderIp", Toast.LENGTH_SHORT)
+                toast.show()
+            }
+
+        } else if (message == "I am here") {
+            // Step 3: Check if the student sent a valid Student ID before
+            val studentID = verifiedStudents[senderIp]
+
+            if (studentID != null) {
+                // Generate random number R for challenge
+                val randomNumber = generateRandomNumber()
+
+                // Save the student's IP address, Student ID, and random number for later verification
+                studentChallenges[senderIp] = Pair(studentID, randomNumber)
+
+                // Send R to the student (This should not be shown in the chat)
+                val challengeMessage = ContentModel(randomNumber.toString(), deviceIp)
+                server?.sendMessage(challengeMessage, senderIp)  // Send R to the student
+
+            } else {
+                // "I am here" received without a valid Student ID
+                val toast = Toast.makeText(this, "StudentID required before 'I am here' from $senderIp", Toast.LENGTH_SHORT)
+                toast.show()
+            }
+
+        } else {
+            // Step 4: Handle challenge-response from the student (Student sends encrypted R)
+            val challengeData = studentChallenges[senderIp]
+            if (challengeData != null) {
+                val (studentID, expectedRandom) = challengeData
+
+                // Decrypt the received message using the hash of the Student ID
+                val studentIDHash = hashStudentID(studentID)
+                val decryptedRandom = decryptMessage(message, studentIDHash)
+
+                // Step 5: Verify if the decrypted random number matches the original R
+                if (decryptedRandom == expectedRandom) {
+                    // Authentication successful, allow further communication
+                    studentChallenges.remove(senderIp)  // Remove challenge after successful auth
+                    authenticatedStudents.add(senderIp)  // Mark the student as authenticated
+
+                    val toast = Toast.makeText(this, "Student $studentID authenticated", Toast.LENGTH_SHORT)
+                    toast.show()
+                } else {
+                    // Failed verification, ignore further messages from this student
+                    val toast = Toast.makeText(this, "Authentication failed for $studentID", Toast.LENGTH_SHORT)
+                    toast.show()
+                }
+
+            } else if (authenticatedStudents.contains(senderIp)) {
+                // If the student is already authenticated, show the message in the chat
+                runOnUiThread {
+                    chatListAdapter?.addItemToEnd(content)
+                }
+            }
         }
     }
+
+    //runOnUiThread {
+      //  chatListAdapter?.addItemToEnd(content)
+    //}
+
+    // Helper function to generate a random number R
+    private fun generateRandomNumber(): Int {
+        return Random().nextInt(1000000) // Random number between 0 and 999999
+    }
+
+    // Function to handle the encrypted response from the student
+    private fun handleEncryptedResponse(content: ContentModel) {
+        val encryptedResponse = content.message
+        val studentId = content.sender
+
+        // Step 4: Verify if the student has an outstanding challenge
+        val randomR = studentChallenges[studentId] ?: return
+
+        // Step 5: Compute hash of StudentID
+        val hashedId = hashStudentID(studentId)
+
+        // Step 6: Decrypt the student's response using hashedId
+        val decryptedR = decryptMessage(encryptedResponse, hashedId)
+
+        // Step 7: Verify if decrypted R matches the original R
+        if (decryptedR == randomR.toString()) {
+            // Authentication successful, proceed with encrypted communication
+            Toast.makeText(this, "Student $studentId authenticated!", Toast.LENGTH_SHORT).show()
+        } else {
+            // Authentication failed, ignore the student
+            Toast.makeText(this, "Authentication failed for $studentId", Toast.LENGTH_SHORT).show()
+        }
+    }
+
+    // Function to hash the Student ID
+    private fun hashStudentID(studentId: String): String {
+        val digest = MessageDigest.getInstance("SHA-256")
+        val hashedBytes = digest.digest(studentId.toByteArray())
+        return hashedBytes.joinToString("") { "%02x".format(it) }
+    }
+
+    // Function to decrypt the student's response
+    private fun decryptMessage(encryptedMessage: String, hashedKey: String): String {
+        val keySpec = SecretKeySpec(hashedKey.toByteArray(), "AES")
+        val cipher = Cipher.getInstance("AES")
+        cipher.init(Cipher.DECRYPT_MODE, keySpec)
+
+        val decryptedBytes = cipher.doFinal(encryptedMessage.toByteArray())
+        return String(decryptedBytes)
+    }
+
 
 }
