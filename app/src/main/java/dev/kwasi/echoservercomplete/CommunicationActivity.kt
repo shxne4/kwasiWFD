@@ -149,6 +149,7 @@ class CommunicationActivity : AppCompatActivity(), WifiDirectInterface, PeerList
     }
 
     override fun onGroupStatusChanged(groupInfo: WifiP2pGroup?) {
+
         val text = if (groupInfo == null){
             "Group is not formed"
         } else {

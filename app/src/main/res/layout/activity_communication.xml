@@ -53,7 +53,7 @@
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent"
-        tools:visibility="visible">
+        tools:visibility="gone">
 
         <!--change id-->
         <TextView
@@ -128,21 +128,108 @@
         app:layout_constraintTop_toTopOf="parent"
         tools:visibility="visible">
 
+        <!-- Network Information Section (15% height) -->
+        <TextView
+            android:id="@+id/tvClassNetwork"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:text="Class Network: "
+            android:textSize="16sp"
+            app:layout_constraintTop_toTopOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintHeight_percent="0.05" />
+
+        <TextView
+            android:id="@+id/networkID"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:text=" "
+            android:textSize="16sp"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintHeight_percent="0.05"
+            app:layout_constraintStart_toEndOf="@id/tvClassNetwork"
+            app:layout_constraintTop_toTopOf="parent"
+            tools:ignore="SpeakableTextPresentCheck" />
+
+        <TextView
+            android:id="@+id/password_text_view"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:text="Network Password: "
+            android:textSize="16sp"
+            app:layout_constraintTop_toBottomOf="@id/tvClassNetwork"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintHeight_percent="0.05" />
+
+        <TextView
+            android:id="@+id/password"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:text=" "
+            android:textSize="16sp"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintHeight_percent="0.05"
+            app:layout_constraintStart_toEndOf="@+id/password_text_view"
+            app:layout_constraintTop_toBottomOf="@id/tvClassNetwork"
+            tools:ignore="SpeakableTextPresentCheck" />
+
+        <Button
+            android:id="@+id/btnEndClass"
+            android:layout_width="wrap_content"
+            android:layout_height="0dp"
+            android:padding="1dp"
+            android:text="End Class"
+            app:layout_constraintHeight_percent="0.05"
+            app:layout_constraintLeft_toLeftOf="@+id/password_text_view"
+            app:layout_constraintTop_toBottomOf="@+id/password_text_view"
+            tools:ignore="TouchTargetSizeCheck" />
+
+        <TextView
+            android:id="@+id/attendeesLabel"
+            android:layout_width="wrap_content"
+            android:layout_height="0dp"
+            android:text="Attendees"
+            android:textStyle="bold"
+            app:layout_constraintTop_toBottomOf="@+id/btnEndClass"
+            app:layout_constraintLeft_toLeftOf="@+id/btnEndClass" />
+
+        <!-- Attendees List (35% height) -->
         <androidx.recyclerview.widget.RecyclerView
             android:id="@+id/rvChat"
             android:layout_width="match_parent"
             android:layout_height="0dp"
-            app:layout_constraintBottom_toTopOf="@id/llChatSend"
-            app:layout_constraintTop_toTopOf="parent" />
+            app:layout_constraintTop_toBottomOf="@+id/attendeesLabel"
+            app:layout_constraintHeight_percent="0.35"/>
+
+        <!-- Chat Interface (50% height) -->
+        <TextView
+            android:id="@+id/chatLabel"
+            android:layout_width="wrap_content"
+            android:layout_height="0dp"
+            android:text="Student Chat: "
+            android:textStyle="bold"
+            app:layout_constraintTop_toBottomOf="@+id/rvChat"
+            app:layout_constraintLeft_toLeftOf="@+id/rvChat"/>
+
+        <TextView
+            android:id="@+id/studentID"
+            android:layout_width="wrap_content"
+            android:layout_height="0dp"
+            android:text=" "
+            app:layout_constraintLeft_toLeftOf="@+id/rvChat"
+            app:layout_constraintStart_toEndOf="@+id/chatLabel"
+            app:layout_constraintTop_toBottomOf="@+id/rvChat"
+            tools:ignore="SpeakableTextPresentCheck" />
 
         <LinearLayout
             android:id="@+id/llChatSend"
             android:layout_width="match_parent"
-            android:layout_height="wrap_content"
+            android:layout_height="0dp"
             android:orientation="horizontal"
             app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintStart_toStartOf="parent">
+            app:layout_constraintTop_toBottomOf="@+id/chatLabel"
+            app:layout_constraintHeight_percent="0.35"/>
 
             <EditText
                 android:id="@+id/etMessage"
@@ -152,14 +239,22 @@
                 android:hint="Enter message..."
                 android:inputType="textMultiLine"
                 android:maxLines="5"
-                android:minLines="3" />
+                android:minLines="3"
+                app:layout_constraintLeft_toLeftOf="@+id/llChatSend"
+                app:layout_constraintTop_toBottomOf="@+id/llChatSend"
+                app:layout_constraintBottom_toBottomOf="@+id/llChatSend"
+                app:layout_constraintHeight_percent="0.05"/>
 
             <Button
-                android:layout_width="0dp"
+                android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_weight="0.4"
                 android:onClick="sendMessage"
-                android:text="Send" />
+                android:text="Send"
+                app:layout_constraintBottom_toBottomOf="@+id/etMessage"
+                app:layout_constraintLeft_toRightOf="@+id/etMessage"
+                app:layout_constraintRight_toRightOf="@+id/llChatSend"
+                app:layout_constraintHeight_percent="0.05"/>
         </LinearLayout>
 
     </androidx.constraintlayout.widget.ConstraintLayout>
